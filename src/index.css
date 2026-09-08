@@ -1,0 +1,331 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ------------------------------------------------------------------ */
+/*  Ornen — design tokens (monochrome + single acid accent)            */
+/* ------------------------------------------------------------------ */
+
+:root {
+  --bg: #0a0a0a;
+  --bg-2: #111111;
+  --ink: #f4f4f0;
+  --ink-dim: #b3b3ab;
+  --ink-faint: #76766e;
+  --acid: #c8ff4d;
+  --acid-ink: #131a05;
+  --line: rgba(244, 244, 240, 0.12);
+  --line-strong: rgba(244, 244, 240, 0.26);
+  --font-display: 'Archivo', ui-sans-serif, system-ui, sans-serif;
+  --font-body: 'Archivo', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, 'SF Mono', monospace;
+}
+
+html {
+  background: var(--bg);
+  scroll-behavior: auto; /* Lenis owns scrolling */
+}
+
+html.lenis, html.lenis body { height: auto; }
+.lenis.lenis-smooth { scroll-behavior: auto !important; }
+.lenis.lenis-stopped { overflow: hidden; }
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-weight: 400;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overflow-x: clip;
+  overscroll-behavior-y: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+::selection {
+  background: var(--acid);
+  color: var(--acid-ink);
+}
+
+::-webkit-scrollbar { width: 0px; height: 0px; }
+
+/* Display cut: expanded width, tight, uppercase-ready */
+.font-display {
+  font-family: var(--font-display);
+  font-stretch: 125%;
+}
+.font-body { font-family: var(--font-body); font-stretch: 100%; }
+.font-mono { font-family: var(--font-mono); }
+
+.text-dim { color: var(--ink-dim); }
+.text-faint { color: var(--ink-faint); }
+.text-acid { color: var(--acid); }
+
+.hairline { border-color: var(--line); }
+
+/* Outlined display text */
+.text-outline {
+  color: transparent;
+  -webkit-text-stroke: 1px var(--ink);
+}
+.text-outline-acid {
+  color: transparent;
+  -webkit-text-stroke: 1px var(--acid);
+}
+
+/* ------------------------------------------------------------------ */
+/*  Entrance choreography                                              */
+/* ------------------------------------------------------------------ */
+
+.build-in {
+  opacity: 0;
+  transform: translateY(6px);
+  animation: build-in 0.55s ease-out forwards;
+}
+@keyframes build-in {
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.reveal {
+  opacity: 0;
+  transform: translateY(14px);
+  transition: opacity 0.7s ease-out, transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: opacity, transform;
+}
+.reveal.is-in {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ------------------------------------------------------------------ */
+/*  Availability blink                                                 */
+/* ------------------------------------------------------------------ */
+
+.blink-dot { animation: blink-dot 1.1s ease infinite; }
+@keyframes blink-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.25; }
+}
+
+/* ------------------------------------------------------------------ */
+/*  Hero CSS fallback (no WebGL / reduced motion) — monochrome         */
+/* ------------------------------------------------------------------ */
+
+.hero-fallback {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse 80% 55% at 50% 108%, rgba(244, 244, 240, 0.07), transparent 60%),
+    radial-gradient(ellipse 100% 80% at 50% -10%, rgba(244, 244, 240, 0.05), transparent 65%),
+    linear-gradient(180deg, #0a0a0a 0%, #111111 55%, #0a0a0a 100%);
+}
+
+.hero-fallback .orb {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(52px);
+  opacity: 0.35;
+  animation: orb-drift 14s ease-in-out infinite alternate;
+  background: radial-gradient(circle at 40% 40%, rgba(244, 244, 240, 0.35), transparent 70%);
+}
+.hero-fallback .orb-teal { width: 40vmin; height: 40vmin; left: 8%; top: 52%; }
+.hero-fallback .orb-pink { width: 30vmin; height: 30vmin; right: 6%; top: 12%; animation-delay: -6s; opacity: 0.22; }
+.hero-fallback .orb-violet { width: 52vmin; height: 52vmin; left: 34%; top: 28%; animation-delay: -3s; opacity: 0.16; }
+@keyframes orb-drift {
+  from { transform: translate3d(0, 0, 0) scale(1); }
+  to { transform: translate3d(4vmin, -5vmin, 0) scale(1.12); }
+}
+
+.hero-fallback .ring {
+  position: absolute;
+  left: 50%; top: 46%;
+  border: 1px solid var(--line-strong);
+  border-radius: 9999px;
+  transform: translate(-50%, -50%);
+}
+.hero-fallback .ring-1 { width: 46vmin; height: 46vmin; }
+.hero-fallback .ring-2 { width: 68vmin; height: 68vmin; opacity: 0.6; }
+.hero-fallback .ring-3 { width: 92vmin; height: 92vmin; opacity: 0.35; }
+
+.hero-fallback .ring .satellite {
+  position: absolute;
+  top: -4px; left: 50%;
+  width: 8px; height: 8px;
+  margin-left: -4px;
+  border-radius: 9999px;
+  background: var(--ink);
+}
+.hero-fallback .ring-2 .satellite { background: var(--acid); }
+.hero-fallback .ring-3 .satellite { background: var(--ink-faint); }
+
+.hero-fallback .ring-spin { animation: ring-spin linear infinite; }
+.hero-fallback .ring-1.ring-spin { animation-duration: 16s; }
+.hero-fallback .ring-2.ring-spin { animation-duration: 26s; animation-direction: reverse; }
+.hero-fallback .ring-3.ring-spin { animation-duration: 40s; }
+@keyframes ring-spin {
+  from { transform: translate(-50%, -50%) rotate(0deg); }
+  to { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+.hero-fallback .core {
+  position: absolute;
+  left: 50%; top: 46%;
+  width: 13vmin; height: 13vmin;
+  transform: translate(-50%, -50%);
+  border-radius: 9999px;
+  background: radial-gradient(circle at 38% 32%, #ffffff 0%, #d9d9d2 30%, #6a6a62 70%, #26261f 100%);
+  animation: core-pulse 4.5s ease-in-out infinite;
+}
+@keyframes core-pulse {
+  0%, 100% { transform: translate(-50%, -50%) scale(1); }
+  50% { transform: translate(-50%, -50%) scale(1.06); }
+}
+
+@media (max-width: 767px) {
+  .hero-fallback .core,
+  .hero-fallback .ring { top: 50%; }
+}
+
+/* Film grain */
+.grain::after {
+  content: '';
+  position: absolute;
+  inset: -50%;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+  opacity: 0.05;
+  mix-blend-mode: overlay;
+}
+
+/* ------------------------------------------------------------------ */
+/*  Marquee                                                            */
+/* ------------------------------------------------------------------ */
+
+.marquee {
+  display: flex;
+  width: max-content;
+  animation: marquee 32s linear infinite;
+}
+.marquee-reverse { animation-direction: reverse; }
+.marquee-mask {
+  mask-image: linear-gradient(90deg, transparent, black 7%, black 93%, transparent);
+  -webkit-mask-image: linear-gradient(90deg, transparent, black 7%, black 93%, transparent);
+}
+.marquee-mask:hover .marquee { animation-play-state: paused; }
+@keyframes marquee {
+  to { transform: translateX(-50%); }
+}
+
+/* ------------------------------------------------------------------ */
+/*  Chat demo                                                          */
+/* ------------------------------------------------------------------ */
+
+.typing-dot { animation: typing-dot 1.4s ease-in-out infinite; }
+.typing-dot:nth-child(2) { animation-delay: 0.18s; }
+.typing-dot:nth-child(3) { animation-delay: 0.36s; }
+@keyframes typing-dot {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+  30% { transform: translateY(-5px); opacity: 1; }
+}
+
+.msg-in { animation: msg-in 0.35s ease-out both; }
+@keyframes msg-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ------------------------------------------------------------------ */
+/*  Buttons — square, hairline, invert on hover                        */
+/* ------------------------------------------------------------------ */
+
+.btn {
+  font-family: var(--font-mono);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.95rem 1.6rem;
+  font-size: 0.78rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  border: 1px solid var(--line-strong);
+  color: var(--ink);
+  background: transparent;
+  transition: background 0.25s ease, color 0.25s ease, border-color 0.25s ease;
+}
+.btn:hover { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+
+.btn-acid {
+  border-color: var(--acid);
+  color: var(--acid-ink);
+  background: var(--acid);
+}
+.btn-acid:hover { background: transparent; color: var(--acid); border-color: var(--acid); }
+
+/* ------------------------------------------------------------------ */
+/*  Preloader — curtain-lift exit                                      */
+/* ------------------------------------------------------------------ */
+
+.preloader {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg);
+  clip-path: inset(0 0 0 0);
+  transition: clip-path 0.85s cubic-bezier(0.76, 0, 0.24, 1);
+}
+.preloader-exit { clip-path: inset(0 0 100% 0); pointer-events: none; }
+
+.preloader-mark { animation: mark-spin 7s linear infinite; }
+@keyframes mark-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Hold hero entrance choreography until the curtain lifts */
+html.is-loading .build-in { animation-play-state: paused; }
+
+/* ------------------------------------------------------------------ */
+/*  Mobile action bar (phones only) + horizontal snap rails            */
+/* ------------------------------------------------------------------ */
+
+.mobile-action-bar {
+  position: fixed;
+  inset-inline: 0;
+  bottom: 0;
+  z-index: 40;
+  transform: translateY(110%);
+  transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+  background: rgba(10, 10, 10, 0.88);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-top: 1px solid var(--line);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+.mobile-action-bar.is-visible { transform: translateY(0); }
+html.menu-open .mobile-action-bar { transform: translateY(110%); }
+
+.no-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
+
+/* Full-screen mobile menu transition */
+.mobile-menu {
+  clip-path: inset(0 0 100% 0);
+  transition: clip-path 0.5s cubic-bezier(0.76, 0, 0.24, 1);
+}
+.mobile-menu.is-open { clip-path: inset(0 0 0% 0); }
+
+/* ------------------------------------------------------------------ */
+/*  Reduced motion                                                     */
+/* ------------------------------------------------------------------ */
+
+@media (prefers-reduced-motion: reduce) {
+  .build-in, .reveal { animation: none !important; transition: none !important; opacity: 1 !important; transform: none !important; }
+  .blink-dot, .marquee, .orb, .ring-spin, .core, .typing-dot, .msg-in, .preloader-mark { animation: none !important; }
+  .preloader, .preloader-exit { transition: opacity 0.3s ease !important; clip-path: none !important; }
+  .preloader-exit { opacity: 0 !important; }
+}
