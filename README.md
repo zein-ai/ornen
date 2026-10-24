@@ -1,73 +1,85 @@
-# React + TypeScript + Vite
+# Ornen
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Ornen’s marketing website and lead-generation stack: conversion-focused pages, a DeepSeek-powered website assistant, and an on-site enquiry form. Built with React, TypeScript, Vite, Tailwind CSS, and Vercel Web Standard serverless functions.
 
-Currently, two official plugins are available:
+## What is included
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- Responsive home, pricing, and branded not-found pages.
+- Route-specific titles, descriptions, canonical URLs, Open Graph, Twitter, and robots metadata.
+- A floating assistant grounded only in Ornen’s approved services, prices, timelines, and contact details.
+- Deterministic name/email capture. The AI never writes leads or claims to book calls.
+- A full contact form with service and budget qualification.
+- Consented chat transcripts attached to chatbot enquiries.
+- Upstash Redis lead storage and distributed IP rate limits.
+- Resend email notifications with the visitor set as `replyTo`.
+- Validation, honeypots, request limits, upstream timeouts, and safe client-facing errors.
+- Mobile CSS hero fallback, deferred desktop WebGL, reduced-motion support, and offscreen render pausing.
 
-## React Compiler
+Booking is intentionally **not** included. Interested visitors submit a project enquiry for human follow-up.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Local development
 
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm install
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+The Vite development server runs on `http://localhost:3000`. This serves the frontend only.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+To exercise the Vercel functions locally, use the Vercel CLI and provide the environment variables below:
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npx vercel dev
 ```
+
+## Environment variables
+
+Copy `.env.example` into your local Vercel environment or configure these variables in the Vercel project. They are **server-side only**; none use a `VITE_` prefix or ship to the browser.
+
+| Variable | Required | Purpose |
+| --- | --- | --- |
+| `DEEPSEEK_API_KEY` | For chat | DeepSeek API credential. |
+| `DEEPSEEK_MODEL` | No | Defaults to `deepseek-flash`. |
+| `UPSTASH_REDIS_REST_URL` | For leads and rate limits | Upstash Redis REST endpoint. |
+| `UPSTASH_REDIS_REST_TOKEN` | For leads and rate limits | Upstash Redis REST token. |
+| `RESEND_API_KEY` | For email alerts | Resend API credential. |
+| `RESEND_FROM_EMAIL` | For email alerts | Verified sender, for example `Ornen Leads <leads@ornen.co>`. |
+| `LEAD_NOTIFICATION_EMAIL` | For email alerts | Inbox that receives new enquiries. |
+
+The assistant returns a graceful configuration message if DeepSeek is missing. The contact form directs visitors to `hello@ornen.co` if Redis is not configured. If email delivery fails after a lead is stored, the lead remains in Redis; the API does not report it as lost.
+
+## Lead storage
+
+Each successful enquiry creates:
+
+- `ornen:lead:<uuid>` — the lead JSON, including timestamp and consented transcript when present.
+- `ornen:leads:recent` — a list capped to the latest 500 lead IDs.
+
+There is deliberately no public lead-listing endpoint. Read leads through the Upstash console or an authenticated internal process. Add retention/deletion procedures appropriate to your privacy obligations.
+
+## Quality checks
+
+```bash
+npm run lint
+npm test
+npm run build
+npm audit
+```
+
+The Three.js hero is lazy-loaded and appears as a separate production chunk. Its bundle-size warning does not block the initial mobile experience; do not move it back into the entry bundle.
+
+## Deployment
+
+Deploy the repository to Vercel. `vercel.json` serves the SPA only for `/` and `/pricing`, leaving `/api/*` to the serverless functions and unknown paths to a real platform 404.
+
+Before enabling the live lead flow:
+
+1. Add all required environment variables to Production (and Preview if desired).
+2. Verify the Resend sender domain/address.
+3. Submit a real test enquiry and confirm both Redis storage and email delivery.
+4. Ask the assistant pricing and out-of-scope questions; confirm it stays within the approved facts.
+5. Check keyboard, mobile safe-area, reduced-motion, and form error/success behavior.
+
+## Privacy and operations
+
+The privacy policy describes DeepSeek processing, consented transcript submission, Upstash storage, and Resend notifications. Keep it aligned with the actual providers and retention practices. Never commit `.env`, credentials, lead data, or notification inbox contents.

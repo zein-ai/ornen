@@ -14,9 +14,9 @@ const workflows: Workflow[] = [
     index: 'W.01',
     audience: 'Local Services · Clinics · Contractors',
     title: 'The 24/7 Lead Catcher',
-    pain: 'Missed calls after 5pm and slow replies cost 40% of inbound leads.',
-    steps: ['Inbound Form / Call', 'AI SMS Auto-Response (<30s)', 'Calendar Booking', 'Airtable CRM'],
-    impact: 'Zero missed leads · Saves 10 hrs/wk',
+    pain: 'Enquiries arrive after hours, but the first reply waits until the next working day.',
+    steps: ['Inbound Form / Call', 'Prompt Automated Response', 'Lead Qualification', 'CRM + Human Follow-up'],
+    impact: 'Designed outcome: every enquiry gets a clear response path',
   },
   {
     index: 'W.02',
@@ -24,7 +24,7 @@ const workflows: Workflow[] = [
     title: 'Frictionless Client Onboarding',
     pain: 'Manual proposal generation, invoice chasing, and repetitive emails.',
     steps: ['Signed Deal (Stripe)', 'Auto-Create Slack Channel', 'Drive Folder + Contract Setup', 'Welcome Email Sequence'],
-    impact: 'Onboarding time cut from 48h to 2 minutes',
+    impact: 'Designed outcome: fewer manual setup steps and handoffs',
   },
   {
     index: 'W.03',
@@ -32,7 +32,7 @@ const workflows: Workflow[] = [
     title: 'Autonomous Customer Care',
     pain: 'Repetitive order tracking and returns questions overloading support.',
     steps: ['Support Query', 'AI Docs & Policy Check', 'Shopify / Shipping API Lookup', 'Instant Resolution or Human Escalation'],
-    impact: '65% of repetitive tickets answered instantly',
+    impact: 'Designed outcome: routine questions resolved, edge cases escalated',
   },
 ]
 
@@ -104,12 +104,12 @@ export default function UseCases() {
   return (
     <section className="py-20 sm:px-10 sm:py-28 lg:px-16" id="work">
       <div className="mx-auto max-w-6xl px-6 sm:px-0">
-        <SectionTag index="04">Tangible Results</SectionTag>
+        <SectionTag index="04">Example Workflows</SectionTag>
         <h2 className="reveal font-display max-w-4xl text-[9.5vw] font-bold uppercase leading-[0.98] tracking-[-0.01em] sm:text-6xl lg:text-[4.8rem]">
           Workflows we build. <span className="text-outline">Hours you save.</span>
         </h2>
         <p className="reveal mt-6 max-w-2xl text-[15px] leading-[1.7] text-dim">
-          Three real-world automations we deploy to eliminate busywork and capture lost revenue.
+          Three example systems we can tailor to your tools and process. The intended outcomes below are design goals, not promised client results.
         </p>
       </div>
 

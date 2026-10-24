@@ -1,5 +1,7 @@
+import { Link } from 'react-router'
 import Nav from '@/components/Nav'
 import SectionTag from '@/components/SectionTag'
+import Seo from '@/components/Seo'
 import FAQ from '@/sections/FAQ'
 import Contact from '@/sections/Contact'
 import { usePageFx } from '@/hooks/usePageFx'
@@ -81,6 +83,11 @@ export default function PricingPage() {
 
   return (
     <main className="relative">
+      <Seo
+        title="Pricing — Ornen Websites, AI Chatbots & Automation"
+        description="Transparent Ornen pricing: Launch from $500 one-time, Grow at $999 plus $99/month, and custom Autopilot workflows. Share your project for a tailored recommendation."
+        path="/pricing"
+      />
       <Nav />
 
       {/* Header */}
@@ -139,12 +146,12 @@ export default function PricingPage() {
                   </li>
                 ))}
               </ul>
-              <a
-                href={`mailto:hello@ornen.co?subject=${encodeURIComponent(t.name + ' plan inquiry — Ornen')}`}
+              <Link
+                to={`/?plan=${encodeURIComponent(t.name)}#contact`}
                 className={`btn mt-10 justify-center py-4 ${t.featured ? 'btn-acid' : ''}`}
               >
                 {t.cta}
-              </a>
+              </Link>
             </div>
           ))}
         </div>
@@ -155,15 +162,15 @@ export default function PricingPage() {
             <span className="text-white">Already have a site you like?</span> We bolt on the chatbot
             and automations, then keep it all alive.
           </p>
-          <a
-            href="mailto:hello@ornen.co?subject=Care%20plan%20inquiry%20—%20Ornen"
-            className="font-mono flex items-center gap-3 text-[11px] font-medium uppercase tracking-[0.18em] text-acid"
+          <Link
+            to="/?plan=Care%20plan#contact"
+            className="font-mono flex min-h-11 items-center gap-3 text-[11px] font-medium uppercase tracking-[0.18em] text-acid"
           >
             Care plan from $99/mo
             <svg width="12" height="12" viewBox="0 0 14 14" fill="none">
               <path d="M1 13L13 1M13 1H4M13 1v9" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
-          </a>
+          </Link>
         </div>
       </section>
 
@@ -227,13 +234,13 @@ export default function PricingPage() {
               Not sure <span className="text-outline">which fits?</span>
             </h2>
             <p className="mt-4 max-w-md text-[14px] leading-[1.7] text-dim">
-              Book the free 20-minute audit. We map what is eating your hours and tell you exactly
-              which tier it lands in — even if the answer is none of them.
+              Request a free project audit. Tell us what is eating your hours and we’ll reply with
+              the tier that fits — even if the answer is none of them.
             </p>
           </div>
-          <a href="mailto:hello@ornen.co?subject=Free%2020-minute%20audit%20—%20Ornen" className="btn btn-acid shrink-0 py-4">
-            Book the free audit
-          </a>
+          <Link to="/?plan=Free%20audit#contact" className="btn btn-acid shrink-0 py-4">
+            Request the free audit
+          </Link>
         </div>
       </section>
 

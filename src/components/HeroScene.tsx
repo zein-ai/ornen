@@ -23,15 +23,20 @@ function ParticleField({ count }: { count: number }) {
     const positions = new Float32Array(count * 3)
     const colors = new Float32Array(count * 3)
     const palette = [COLORS.paper, COLORS.dim, COLORS.faint, COLORS.paper]
+    let seed = 0x04e11
+    const random = () => {
+      seed = (seed * 1664525 + 1013904223) >>> 0
+      return seed / 4294967296
+    }
     for (let i = 0; i < count; i++) {
-      // Random point in a hollow sphere shell
-      const r = 7 + Math.random() * 16
-      const theta = Math.random() * Math.PI * 2
-      const phi = Math.acos(2 * Math.random() - 1)
+      // Deterministic shell: stable across renders and hydration.
+      const r = 7 + random() * 16
+      const theta = random() * Math.PI * 2
+      const phi = Math.acos(2 * random() - 1)
       positions[i * 3] = r * Math.sin(phi) * Math.cos(theta)
       positions[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta) * 0.7
       positions[i * 3 + 2] = r * Math.cos(phi) - 6
-      const c = palette[Math.floor(Math.random() * palette.length)]
+      const c = palette[Math.floor(random() * palette.length)]
       colors[i * 3] = c.r
       colors[i * 3 + 1] = c.g
       colors[i * 3 + 2] = c.b
@@ -139,6 +144,7 @@ function OrbitNode({ def }: { def: OrbitDef }) {
     })
     return new THREE.Line(geo, mat)
   }, [def.color])
+  const streamRef = useRef(stream)
 
   useFrame((state) => {
     const t = state.clock.elapsedTime * def.speed + def.offset
@@ -149,10 +155,10 @@ function OrbitNode({ def }: { def: OrbitDef }) {
     nodeRef.current.scale.setScalar(s)
 
     // Stream: node → core, opacity breathing
-    const attr = stream.geometry.getAttribute('position') as THREE.BufferAttribute
+    const attr = streamRef.current.geometry.getAttribute('position') as THREE.BufferAttribute
     attr.setXYZ(0, x, 0, z)
     attr.needsUpdate = true
-    const mat = stream.material as THREE.LineBasicMaterial
+    const mat = streamRef.current.material as THREE.LineBasicMaterial
     mat.opacity = 0.22 + (Math.sin(state.clock.elapsedTime * 1.8 + def.offset) + 1) * 0.14
   })
 
@@ -177,16 +183,17 @@ function OrbitNode({ def }: { def: OrbitDef }) {
 function Rig({ children }: { children: React.ReactNode }) {
   const group = useRef<THREE.Group>(null!)
   const { camera } = useThree()
+  const cameraRef = useRef(camera)
   const isMobile = useIsMobile()
 
   useFrame((_state, delta) => {
     const s = heroState.scroll
     // Camera dollies in as the user scrolls; group tilts open
     const baseZ = isMobile ? 10 : 9
-    camera.position.z = THREE.MathUtils.damp(camera.position.z, baseZ - s * (isMobile ? 1.6 : 3.2), 2.5, delta)
-    camera.position.x = THREE.MathUtils.damp(camera.position.x, heroState.pointerX * (isMobile ? 0.9 : 0.6), 2.5, delta)
-    camera.position.y = THREE.MathUtils.damp(camera.position.y, 0.4 + s * 1.1 - heroState.pointerY * 0.5, 2.5, delta)
-    camera.lookAt(0, 0, 0)
+    cameraRef.current.position.z = THREE.MathUtils.damp(cameraRef.current.position.z, baseZ - s * (isMobile ? 1.6 : 3.2), 2.5, delta)
+    cameraRef.current.position.x = THREE.MathUtils.damp(cameraRef.current.position.x, heroState.pointerX * (isMobile ? 0.9 : 0.6), 2.5, delta)
+    cameraRef.current.position.y = THREE.MathUtils.damp(cameraRef.current.position.y, 0.4 + s * 1.1 - heroState.pointerY * 0.5, 2.5, delta)
+    cameraRef.current.lookAt(0, 0, 0)
 
     const targetY = heroState.pointerX * 0.22 + s * 1.2
     const targetX = heroState.pointerY * 0.14 - s * 0.35
@@ -209,7 +216,7 @@ function Rig({ children }: { children: React.ReactNode }) {
 
 export default function HeroScene({ active }: { active: boolean }) {
   const isMobile = useIsMobile()
-  const dpr = Math.min(isMobile ? 1.5 : 1.75, typeof window !== 'undefined' ? window.devicePixelRatio : 1)
+  const dpr = Math.min(isMobile ? 1.25 : 1.5, typeof window !== 'undefined' ? window.devicePixelRatio : 1)
 
   const orbits: OrbitDef[] = useMemo(
     () => [
@@ -235,7 +242,7 @@ export default function HeroScene({ active }: { active: boolean }) {
       style={{ position: 'absolute', inset: 0 }}
     >
       <Rig>
-        <ParticleField count={isMobile ? 1400 : 3600} />
+        <ParticleField count={isMobile ? 700 : 1800} />
         <Core />
         {orbits.map((def, i) => (
           <OrbitNode key={i} def={def} />

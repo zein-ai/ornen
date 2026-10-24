@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef } from 'react'
 
 export type LegalDoc = 'privacy' | 'terms'
 
@@ -11,26 +11,30 @@ const DOCS: Record<LegalDoc, { label: string; title: string; updated: string; se
   privacy: {
     label: 'Legal / 01',
     title: 'Privacy Policy',
-    updated: 'Last updated — 2026',
+    updated: 'Last updated — October 2026',
     sections: [
       {
-        heading: 'Data handling',
-        body: 'We collect only what you hand us directly: your name, email, and project details when you reach out, plus anonymous, cookie-free usage analytics. We never sell, rent, or trade your data. The information your automations touch — leads, customers, orders — lives in your own accounts (your CRM, your sheets, your inbox), not on our servers.',
+        heading: 'Information you share',
+        body: 'When you send an enquiry, we collect the name, email, company, service, budget, and project details you choose to provide. Chat messages are processed by DeepSeek to generate answers. Your chat transcript is only added to your enquiry when you explicitly consent to sharing it with Ornen. Please do not send passwords, payment details, or confidential information.',
+      },
+      {
+        heading: 'Storage and service providers',
+        body: 'Consented enquiries and chat transcripts are stored in Upstash Redis and included in email notifications delivered through Resend. We use these providers only to respond to your request and operate the service. We do not sell, rent, or trade your personal information, and submitting the form does not subscribe you to marketing.',
+      },
+      {
+        heading: 'Retention and your rights',
+        body: 'We keep enquiry information only as long as needed for the conversation, service delivery, and legitimate business or legal obligations. Email hello@ornen.co to request access, correction, export, or deletion of the personal data we hold about you.',
       },
       {
         heading: 'AI disclaimer',
-        body: 'Our chatbots answer from the documents and policies you provide. They can occasionally be wrong, and their answers are not legal, medical, or financial advice. Every assistant we ship includes a human handoff path, and you can review or correct its knowledge at any time.',
-      },
-      {
-        heading: 'Your rights',
-        body: 'Email hello@ornen.co anytime to access, correct, export, or delete the personal data we hold about you. We honor every request within 7 days — no forms, no dark patterns.',
+        body: 'AI answers can occasionally be wrong and are not legal, medical, or financial advice. Check important details with the Ornen team. Every assistant includes a human handoff path.',
       },
     ],
   },
   terms: {
     label: 'Legal / 02',
     title: 'Terms of Service',
-    updated: 'Last updated — 2026',
+    updated: 'Last updated — October 2026',
     sections: [
       {
         heading: 'Services',
@@ -46,94 +50,84 @@ const DOCS: Record<LegalDoc, { label: string; title: string; updated: string; se
       },
       {
         heading: 'Liability',
-        body: 'We build carefully and monitor what we run, but software is software: to the maximum extent permitted by law, our total liability is capped at the fees you paid us in the three months preceding a claim. Plain and simple.',
+        body: 'We build carefully and monitor what we run, but software is software: to the maximum extent permitted by law, our total liability is capped at the fees you paid us in the three months preceding a claim.',
       },
     ],
   },
 }
 
-/** Clean legal overlay — brief, plain-language summaries on the Ornen dark system. */
 export default function LegalModal({ doc, onClose }: { doc: LegalDoc | null; onClose: () => void }) {
-  const [mounted, setMounted] = useState(false)
+  const panelRef = useRef<HTMLDivElement>(null)
+  const closeRef = useRef<HTMLButtonElement>(null)
+  const onCloseRef = useRef(onClose)
 
-  // Entrance choreography + scroll lock + Escape
+  useEffect(() => {
+    onCloseRef.current = onClose
+  }, [onClose])
+
   useEffect(() => {
     if (!doc) return
-    const raf = requestAnimationFrame(() => setMounted(true))
-    const prevOverflow = document.body.style.overflow
+    const previouslyFocused = document.activeElement as HTMLElement | null
+    const previousOverflow = document.body.style.overflow
     document.body.style.overflow = 'hidden'
-    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose()
+    const frame = requestAnimationFrame(() => closeRef.current?.focus())
+
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.preventDefault()
+        onCloseRef.current()
+        return
+      }
+      if (event.key !== 'Tab' || !panelRef.current) return
+      const focusable = Array.from(panelRef.current.querySelectorAll<HTMLElement>('button, a[href], input, select, textarea, [tabindex]:not([tabindex="-1"])'))
+        .filter((element) => !element.hasAttribute('disabled'))
+      if (!focusable.length) return
+      const first = focusable[0]
+      const last = focusable[focusable.length - 1]
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault()
+        last.focus()
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault()
+        first.focus()
+      }
+    }
+
     window.addEventListener('keydown', onKey)
     return () => {
-      cancelAnimationFrame(raf)
-      document.body.style.overflow = prevOverflow
+      cancelAnimationFrame(frame)
+      document.body.style.overflow = previousOverflow
       window.removeEventListener('keydown', onKey)
-      setMounted(false)
+      previouslyFocused?.focus()
     }
-  }, [doc, onClose])
+  }, [doc])
 
   if (!doc) return null
   const content = DOCS[doc]
 
   return (
-    <div
-      className="fixed inset-0 z-[110] flex items-end justify-center p-0 sm:items-center sm:p-8"
-      role="dialog"
-      aria-modal="true"
-      aria-label={content.title}
-    >
-      {/* Backdrop */}
-      <button
-        aria-label="Close"
-        onClick={onClose}
-        className={`absolute inset-0 cursor-pointer transition-opacity duration-300 ${mounted ? 'opacity-100' : 'opacity-0'}`}
-        style={{ background: 'rgba(10,10,10,0.72)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}
-      />
-
-      {/* Panel — scrolls internally, Lenis hands wheel events to it */}
-      <div
-        data-lenis-prevent
-        className={`relative flex max-h-[86svh] w-full max-w-xl flex-col border transition-all duration-500 ease-out sm:max-h-[80vh] ${
-          mounted ? 'translate-y-0 opacity-100' : 'translate-y-6 opacity-0'
-        }`}
-        style={{ borderColor: 'var(--line-strong)', background: 'var(--bg-2)' }}
-      >
-        {/* Header */}
-        <div
-          className="flex items-center justify-between gap-4 border-b px-6 py-5 sm:px-8"
-          style={{ borderColor: 'var(--line)' }}
-        >
+    <div className="fixed inset-0 z-[110] flex items-end justify-center p-0 sm:items-center sm:p-8" role="dialog" aria-modal="true" aria-labelledby="legal-title">
+      <button tabIndex={-1} aria-hidden="true" onClick={onClose} className="absolute inset-0 cursor-pointer" style={{ background: 'rgba(10,10,10,0.72)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }} />
+      <div ref={panelRef} data-lenis-prevent className="msg-in relative flex max-h-[86svh] w-full max-w-xl flex-col border sm:max-h-[80vh]" style={{ borderColor: 'var(--line-strong)', background: 'var(--bg-2)' }}>
+        <div className="flex items-center justify-between gap-4 border-b px-6 py-5 sm:px-8" style={{ borderColor: 'var(--line)' }}>
           <div>
             <p className="font-mono text-[9px] uppercase tracking-[0.24em] text-acid">{content.label}</p>
-            <h3 className="font-display mt-2 text-xl font-bold uppercase tracking-[0.01em] text-white sm:text-2xl">
-              {content.title}
-            </h3>
+            <h2 id="legal-title" className="font-display mt-2 text-xl font-bold uppercase tracking-[0.01em] text-white sm:text-2xl">{content.title}</h2>
           </div>
-          <button
-            onClick={onClose}
-            aria-label="Close dialog"
-            className="group flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center border transition-colors hover:border-[var(--acid)]"
-            style={{ borderColor: 'var(--line)' }}
-          >
-            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" className="text-faint transition-colors group-hover:text-acid">
+          <button ref={closeRef} type="button" onClick={onClose} aria-label="Close dialog" className="group flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center border transition-colors hover:border-[var(--acid)]" style={{ borderColor: 'var(--line)' }}>
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" className="text-faint transition-colors group-hover:text-acid" aria-hidden="true">
               <path d="M1 1l10 10M11 1L1 11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
             </svg>
           </button>
         </div>
-
-        {/* Body */}
         <div className="no-scrollbar overflow-y-auto px-6 py-6 sm:px-8 sm:py-7">
-          {content.sections.map((s, i) => (
-            <div key={s.heading} className={i > 0 ? 'mt-7' : ''}>
-              <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-acid">
-                {String(i + 1).padStart(2, '0')} — {s.heading}
-              </p>
-              <p className="mt-2.5 text-[13.5px] leading-[1.75] text-dim">{s.body}</p>
-            </div>
+          {content.sections.map((section, index) => (
+            <section key={section.heading} className={index > 0 ? 'mt-7' : ''}>
+              <h3 className="font-mono text-[10px] uppercase tracking-[0.22em] text-acid">{String(index + 1).padStart(2, '0')} — {section.heading}</h3>
+              <p className="mt-2.5 text-[13.5px] leading-[1.75] text-dim">{section.body}</p>
+            </section>
           ))}
-          <p className="mt-8 border-t pt-5 font-mono text-[9px] uppercase tracking-[0.2em] text-faint" style={{ borderColor: 'var(--line)' }}>
-            {content.updated} · Questions — hello@ornen.co
-          </p>
+          <p className="font-mono mt-8 border-t pt-5 text-[9px] uppercase tracking-[0.2em] text-faint" style={{ borderColor: 'var(--line)' }}>{content.updated} · Questions — hello@ornen.co</p>
         </div>
       </div>
     </div>

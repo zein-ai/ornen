@@ -1,6 +1,4 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss';
 
 /* ------------------------------------------------------------------ */
 /*  Ornen — design tokens (monochrome + single acid accent)            */
@@ -265,31 +263,6 @@ body {
 .btn-acid:hover { background: transparent; color: var(--acid); border-color: var(--acid); }
 
 /* ------------------------------------------------------------------ */
-/*  Preloader — curtain-lift exit                                      */
-/* ------------------------------------------------------------------ */
-
-.preloader {
-  position: fixed;
-  inset: 0;
-  z-index: 100;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--bg);
-  clip-path: inset(0 0 0 0);
-  transition: clip-path 0.85s cubic-bezier(0.76, 0, 0.24, 1);
-}
-.preloader-exit { clip-path: inset(0 0 100% 0); pointer-events: none; }
-
-.preloader-mark { animation: mark-spin 7s linear infinite; }
-@keyframes mark-spin {
-  to { transform: rotate(360deg); }
-}
-
-/* Hold hero entrance choreography until the curtain lifts */
-html.is-loading .build-in { animation-play-state: paused; }
-
-/* ------------------------------------------------------------------ */
 /*  Mobile action bar (phones only) + horizontal snap rails            */
 /* ------------------------------------------------------------------ */
 
@@ -320,12 +293,160 @@ html.menu-open .mobile-action-bar { transform: translateY(110%); }
 .mobile-menu.is-open { clip-path: inset(0 0 0% 0); }
 
 /* ------------------------------------------------------------------ */
+/*  Forms + floating lead assistant                                    */
+/* ------------------------------------------------------------------ */
+
+:where(a, button, input, select, textarea):focus-visible {
+  outline: 2px solid var(--acid);
+  outline-offset: 3px;
+}
+
+button:disabled,
+fieldset:disabled {
+  cursor: not-allowed;
+}
+button:disabled { opacity: 0.5; }
+
+.form-input {
+  border: 1px solid var(--line-strong);
+  border-radius: 0;
+  background: var(--bg);
+  color: var(--ink);
+  color-scheme: dark;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+.form-input:hover { border-color: rgba(244, 244, 240, 0.45); }
+.form-input:focus { border-color: var(--acid); }
+.form-input option { background: var(--bg-2); color: var(--ink); }
+
+.form-checkbox {
+  width: 1.1rem;
+  height: 1.1rem;
+  flex: 0 0 auto;
+  margin: 0;
+  border-radius: 0;
+  accent-color: var(--acid);
+  cursor: pointer;
+}
+
+.chat-launcher {
+  position: fixed;
+  right: 24px;
+  bottom: max(24px, env(safe-area-inset-bottom, 0px));
+  z-index: 70;
+  display: flex;
+  min-height: 48px;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid var(--acid);
+  background: var(--acid);
+  color: var(--acid-ink);
+  padding: 0 18px;
+  cursor: pointer;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.32);
+  transition: transform 0.25s ease, opacity 0.2s ease, visibility 0.2s;
+}
+.chat-launcher:hover { transform: translateY(-2px); }
+.chat-launcher.is-hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateY(8px);
+}
+
+.chat-panel {
+  position: fixed;
+  right: 24px;
+  bottom: max(24px, env(safe-area-inset-bottom, 0px));
+  z-index: 80;
+  display: flex;
+  width: min(400px, calc(100vw - 32px));
+  height: min(680px, calc(100svh - 48px));
+  max-height: 680px;
+  flex-direction: column;
+  border: 1px solid var(--line-strong);
+  background: var(--bg-2);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.55);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateY(16px) scale(0.985);
+  transform-origin: bottom right;
+  transition: opacity 0.22s ease, transform 0.22s ease, visibility 0.22s;
+}
+.chat-panel.is-open {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translateY(0) scale(1);
+}
+.chat-messages {
+  display: flex;
+  min-height: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 14px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 18px;
+}
+.chat-icon-button,
+.chat-send {
+  display: inline-flex;
+  width: 44px;
+  height: 44px;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+  transition: border-color 0.2s ease, color 0.2s ease, background 0.2s ease;
+}
+.chat-icon-button:hover { border-color: var(--acid); color: var(--acid); }
+.chat-send { border-color: var(--acid); background: var(--acid); color: var(--acid-ink); }
+.chat-send:hover:not(:disabled) { background: transparent; color: var(--acid); }
+.chat-prompt {
+  min-height: 38px;
+  border: 1px solid var(--line-strong);
+  background: transparent;
+  color: var(--ink-dim);
+  padding: 8px 11px;
+  text-align: left;
+  font-size: 12px;
+  line-height: 1.4;
+  cursor: pointer;
+  transition: border-color 0.2s ease, color 0.2s ease, background 0.2s ease;
+}
+.chat-prompt:hover { border-color: var(--acid); color: var(--acid); background: rgba(200, 255, 77, 0.04); }
+
+html.menu-open .chat-launcher { opacity: 0; visibility: hidden; pointer-events: none; }
+
+@media (max-width: 767px) {
+  .chat-launcher {
+    right: 14px;
+    bottom: calc(68px + env(safe-area-inset-bottom, 0px));
+    min-height: 44px;
+    padding: 0 14px;
+  }
+  .chat-panel {
+    right: 10px;
+    bottom: calc(64px + env(safe-area-inset-bottom, 0px));
+    width: calc(100vw - 20px);
+    height: min(660px, calc(100svh - 86px - env(safe-area-inset-bottom, 0px)));
+    max-height: none;
+    transform-origin: bottom center;
+  }
+  .chat-messages { padding: 14px; }
+}
+
+/* ------------------------------------------------------------------ */
 /*  Reduced motion                                                     */
 /* ------------------------------------------------------------------ */
 
 @media (prefers-reduced-motion: reduce) {
   .build-in, .reveal { animation: none !important; transition: none !important; opacity: 1 !important; transform: none !important; }
-  .blink-dot, .marquee, .orb, .ring-spin, .core, .typing-dot, .msg-in, .preloader-mark { animation: none !important; }
-  .preloader, .preloader-exit { transition: opacity 0.3s ease !important; clip-path: none !important; }
-  .preloader-exit { opacity: 0 !important; }
+  .blink-dot, .marquee, .orb, .ring-spin, .core, .typing-dot, .msg-in { animation: none !important; }
+  .chat-panel, .chat-launcher { transition: none !important; }
 }

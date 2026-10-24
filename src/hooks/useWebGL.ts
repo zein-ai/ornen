@@ -1,21 +1,23 @@
-import { useEffect, useState } from 'react'
+import { useSyncExternalStore } from 'react'
 
-/** Detects WebGL availability once, on the client. */
-export function useWebGLSupport(): boolean | null {
-  const [supported, setSupported] = useState<boolean | null>(null)
+let cachedSupport: boolean | undefined
 
-  useEffect(() => {
-    try {
-      const canvas = document.createElement('canvas')
-      const gl =
-        canvas.getContext('webgl2') ||
-        canvas.getContext('webgl') ||
-        canvas.getContext('experimental-webgl')
-      setSupported(!!gl)
-    } catch {
-      setSupported(false)
-    }
-  }, [])
+function detectWebGL() {
+  if (cachedSupport !== undefined) return cachedSupport
+  try {
+    const canvas = document.createElement('canvas')
+    const gl = canvas.getContext('webgl2') || canvas.getContext('webgl')
+    cachedSupport = Boolean(gl)
+    gl?.getExtension('WEBGL_lose_context')?.loseContext()
+  } catch {
+    cachedSupport = false
+  }
+  return cachedSupport
+}
 
-  return supported
+const subscribe = () => () => {}
+
+/** Detects WebGL once without creating a render/effect state cascade. */
+export function useWebGLSupport(): boolean {
+  return useSyncExternalStore(subscribe, detectWebGL, () => false)
 }

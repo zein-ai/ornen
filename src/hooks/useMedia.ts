@@ -1,17 +1,17 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useSyncExternalStore } from 'react'
 
 function useMediaQuery(query: string): boolean {
-  const [matches, setMatches] = useState(false)
-
-  useEffect(() => {
-    const mql = window.matchMedia(query)
-    setMatches(mql.matches)
-    const onChange = (e: MediaQueryListEvent) => setMatches(e.matches)
-    mql.addEventListener('change', onChange)
-    return () => mql.removeEventListener('change', onChange)
+  const subscribe = useCallback((onChange: () => void) => {
+    const media = window.matchMedia(query)
+    media.addEventListener('change', onChange)
+    return () => media.removeEventListener('change', onChange)
   }, [query])
 
-  return matches
+  return useSyncExternalStore(
+    subscribe,
+    () => window.matchMedia(query).matches,
+    () => false,
+  )
 }
 
 export const useReducedMotion = () => useMediaQuery('(prefers-reduced-motion: reduce)')
