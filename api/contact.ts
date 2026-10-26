@@ -3,7 +3,7 @@ import { leadSchema, saveLead } from './_lib/leads'
 
 export const config = { maxDuration: 15 }
 
-export default async function handler(request: Request) {
+async function handler(request: Request) {
   if (request.method !== 'POST') return methodNotAllowed()
 
   try {
@@ -34,3 +34,5 @@ export default async function handler(request: Request) {
     return safeError(error)
   }
 }
+
+export default { fetch: handler }

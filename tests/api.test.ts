@@ -58,8 +58,8 @@ test('lead schema normalizes email and requires consent and project context', ()
 })
 
 test('handlers reject unsupported methods', async () => {
-  const contact = await contactHandler(new Request('https://www.ornen.co/api/contact'))
-  const chat = await chatHandler(new Request('https://www.ornen.co/api/chat'))
+  const contact = await contactHandler.fetch(new Request('https://www.ornen.co/api/contact'))
+  const chat = await chatHandler.fetch(new Request('https://www.ornen.co/api/chat'))
   assert.equal(contact.status, 405)
   assert.equal(chat.status, 405)
   assert.equal(contact.headers.get('allow'), 'POST')
@@ -71,7 +71,7 @@ test('invalid enquiries are rejected before storage or rate-limit calls', async 
     fetchCalled = true
     throw new Error('Unexpected network call')
   }
-  const response = await contactHandler(post('/api/contact', { ...validLead, email: 'not-an-email' }))
+  const response = await contactHandler.fetch(post('/api/contact', { ...validLead, email: 'not-an-email' }))
   assert.equal(response.status, 400)
   assert.equal(fetchCalled, false)
 })
@@ -82,24 +82,24 @@ test('honeypot enquiries are accepted without creating a lead', async () => {
     fetchCalled = true
     throw new Error('Unexpected network call')
   }
-  const response = await contactHandler(post('/api/contact', { ...validLead, website: 'spam.example' }))
+  const response = await contactHandler.fetch(post('/api/contact', { ...validLead, website: 'spam.example' }))
   assert.equal(response.status, 200)
   assert.equal(fetchCalled, false)
 })
 
 test('missing infrastructure degrades to safe configuration messages', async () => {
-  const contact = await contactHandler(post('/api/contact', validLead))
+  const contact = await contactHandler.fetch(post('/api/contact', validLead))
   assert.equal(contact.status, 503)
   assert.match((await contact.json()).error, /hello@ornen\.co/)
 
-  const chat = await chatHandler(post('/api/chat', { messages: [{ role: 'user', content: 'What do you do?' }] }))
+  const chat = await chatHandler.fetch(post('/api/chat', { messages: [{ role: 'user', content: 'What do you do?' }] }))
   assert.equal(chat.status, 503)
   assert.match((await chat.json()).error, /contact form/)
 })
 
 test('oversized JSON bodies return 413 even without a content-length header', async () => {
   configureServices()
-  const response = await contactHandler(post('/api/contact', { ...validLead, message: 'x'.repeat(33_000) }))
+  const response = await contactHandler.fetch(post('/api/contact', { ...validLead, message: 'x'.repeat(33_000) }))
   assert.equal(response.status, 413)
 })
 
@@ -124,7 +124,7 @@ test('a valid contact lead is stored and triggers a reply-to notification', asyn
     return new Response(JSON.stringify([{ result: [4, 5] }]), { status: 200 })
   }
 
-  const response = await contactHandler(post('/api/contact', validLead))
+  const response = await contactHandler.fetch(post('/api/contact', validLead))
   const body = await response.json()
   assert.equal(response.status, 201)
   assert.equal(body.ok, true)
@@ -146,7 +146,7 @@ test('chat sends grounded history to DeepSeek and returns its answer', async () 
     return new Response(JSON.stringify([{ result: [19, 20] }]), { status: 200 })
   }
 
-  const response = await chatHandler(post('/api/chat', { messages: [{ role: 'user', content: 'What do you do?' }] }))
+  const response = await chatHandler.fetch(post('/api/chat', { messages: [{ role: 'user', content: 'What do you do?' }] }))
   assert.equal(response.status, 200)
   assert.match((await response.json()).reply, /websites/)
   assert.equal(deepSeekBody.model, 'deepseek-flash')
@@ -157,7 +157,7 @@ test('chat sends grounded history to DeepSeek and returns its answer', async () 
 test('distributed rate-limit denials return 429 and Retry-After', async () => {
   configureServices()
   globalThis.fetch = async () => new Response(JSON.stringify([{ result: [-1, 5] }]), { status: 200 })
-  const response = await chatHandler(post('/api/chat', { messages: [{ role: 'user', content: 'How much does it cost?' }] }))
+  const response = await chatHandler.fetch(post('/api/chat', { messages: [{ role: 'user', content: 'How much does it cost?' }] }))
   assert.equal(response.status, 429)
   assert.ok(Number(response.headers.get('retry-after')) >= 1)
 })
