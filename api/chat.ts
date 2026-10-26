@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { json, methodNotAllowed, rateLimit, readJson } from './_lib/http'
+import { json, methodNotAllowed, rateLimit, readJson } from './_lib/http.js'
 
 export const config = { maxDuration: 25 }
 

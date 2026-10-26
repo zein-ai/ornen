@@ -1,6 +1,6 @@
 import { Resend } from 'resend'
 import { z } from 'zod'
-import { getRedis } from './http'
+import { getRedis } from './http.js'
 
 const messageSchema = z.object({
   role: z.enum(['user', 'assistant']),

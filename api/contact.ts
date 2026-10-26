@@ -1,5 +1,5 @@
-import { json, methodNotAllowed, rateLimit, readJson, safeError } from './_lib/http'
-import { leadSchema, saveLead } from './_lib/leads'
+import { json, methodNotAllowed, rateLimit, readJson, safeError } from './_lib/http.js'
+import { leadSchema, saveLead } from './_lib/leads.js'
 
 export const config = { maxDuration: 15 }
 
